@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Docker Deployment – SmartStock AI</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;display:flex;flex-direction:column;height:100vh;width:1440px;overflow:hidden;}
+  /* Title bar */
+  .titlebar{background:#161b22;height:30px;display:flex;align-items:center;padding:0 14px;border-bottom:1px solid #30363d;font-size:12px;color:#8b949e;}
+  .titlebar .dots span{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:4px;}
+  .dot-r{background:#ff5f57;}.dot-y{background:#febc2e;}.dot-g{background:#28c840;}
+  /* Layout */
+  .workspace{display:flex;flex:1;overflow:hidden;}
+  /* Left: docker compose code */
+  .left-pane{width:620px;background:#0d1117;border-right:1px solid #30363d;overflow:auto;display:flex;flex-direction:column;}
+  .pane-header{background:#161b22;padding:8px 14px;font-size:12px;font-weight:600;color:#58a6ff;border-bottom:1px solid #30363d;display:flex;align-items:center;gap:8px;}
+  .code-wrap{padding:12px 0;overflow:auto;flex:1;}
+  .code-wrap pre{font-family:'Consolas','Courier New',monospace;font-size:12px;line-height:1.75;white-space:pre;}
+  .ln{display:inline-block;width:36px;text-align:right;color:#484f58;padding-right:12px;user-select:none;}
+  .kw{color:#ff7b72;}.val{color:#a5d6ff;}.str{color:#a5d6ff;}.num{color:#79c0ff;}.cmt{color:#484f58;font-style:italic;}.key{color:#7ee787;}.anchor{color:#d2a8ff;}
+  /* Right: terminal */
+  .right-pane{flex:1;display:flex;flex-direction:column;background:#0d1117;overflow:hidden;}
+  .terminal{flex:1;background:#0d1117;padding:14px 16px;overflow:auto;font-family:'Consolas','Courier New',monospace;font-size:12.5px;line-height:1.65;}
+  .terminal .prompt{color:#58a6ff;}
+  .terminal .cmd{color:#e6edf3;}
+  .terminal .out{color:#8b949e;}
+  .terminal .ok{color:#3fb950;}
+  .terminal .warn{color:#d29922;}
+  .terminal .info{color:#58a6ff;}
+  .terminal .err{color:#f85149;}
+  .terminal .pull{color:#d2a8ff;}
+  .terminal .cont-name{color:#79c0ff;font-weight:600;}
+  .terminal .cont-id{color:#a5d6ff;}
+  .terminal .cont-status{color:#3fb950;font-weight:600;}
+  .terminal .cont-port{color:#ffa657;}
+  /* docker ps table */
+  .ps-table{margin:8px 0;border-collapse:collapse;width:100%;font-size:11.5px;}
+  .ps-table th{color:#8b949e;text-align:left;padding:2px 10px 4px 0;border-bottom:1px solid #30363d;white-space:nowrap;}
+  .ps-table td{padding:3px 10px 3px 0;vertical-align:top;white-space:nowrap;}
+  /* statusbar */
+  .statusbar{background:#1f6feb;height:22px;display:flex;align-items:center;padding:0 12px;font-size:11.5px;color:#e6edf3;gap:16px;}
+</style>
+</head>
+<body>
+<div class="titlebar">
+  <div class="dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+  <span style="margin-left:8px;">🐳 Docker Desktop — SmartStock AI — Dragon Vision Technology</span>
+</div>
+<div class="workspace">
+  <!-- Left: docker-compose.yml -->
+  <div class="left-pane">
+    <div class="pane-header">📄 docker-compose.yml</div>
+    <div class="code-wrap"><pre>
+<span class="ln">1</span><span class="cmt"># Dragon Vision SmartStock AI — docker-compose.yml</span>
+<span class="ln">2</span><span class="key">version</span>: <span class="str">'3.9'</span>
+<span class="ln">3</span>
+<span class="ln">4</span><span class="key">services</span>:
+<span class="ln">5</span>  <span class="anchor"># ── PostgreSQL ──────────────────────────</span>
+<span class="ln">6</span>  <span class="key">postgres</span>:
+<span class="ln">7</span>    <span class="key">image</span>: <span class="str">postgres:15-alpine</span>
+<span class="ln">8</span>    <span class="key">container_name</span>: <span class="str">smartstock-postgres</span>
+<span class="ln">9</span>    <span class="key">restart</span>: <span class="str">unless-stopped</span>
+<span class="ln">10</span>    <span class="key">environment</span>:
+<span class="ln">11</span>      POSTGRES_DB: <span class="str">dragonvision_db</span>
+<span class="ln">12</span>      POSTGRES_USER: <span class="str">smartstock</span>
+<span class="ln">13</span>      POSTGRES_PASSWORD: <span class="str">${DB_PASSWORD}</span>
+<span class="ln">14</span>    <span class="key">ports</span>:
+<span class="ln">15</span>      - <span class="str">"5432:5432"</span>
+<span class="ln">16</span>    <span class="key">volumes</span>:
+<span class="ln">17</span>      - postgres_data:/var/lib/postgresql/data
+<span class="ln">18</span>      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+<span class="ln">19</span>    <span class="key">networks</span>: [smartstock-net]
+<span class="ln">20</span>    <span class="key">healthcheck</span>:
+<span class="ln">21</span>      <span class="key">test</span>: [<span class="str">"CMD"</span>, <span class="str">"pg_isready"</span>, <span class="str">"-U"</span>, <span class="str">"smartstock"</span>]
+<span class="ln">22</span>      <span class="key">interval</span>: <span class="num">10s</span>; <span class="key">timeout</span>: <span class="num">5s</span>; <span class="key">retries</span>: <span class="num">5</span>
+<span class="ln">23</span>
+<span class="ln">24</span>  <span class="anchor"># ── Ollama AI (Qwen 2.5 7B) ─────────────</span>
+<span class="ln">25</span>  <span class="key">ollama</span>:
+<span class="ln">26</span>    <span class="key">image</span>: <span class="str">ollama/ollama:latest</span>
+<span class="ln">27</span>    <span class="key">container_name</span>: <span class="str">smartstock-ollama</span>
+<span class="ln">28</span>    <span class="key">restart</span>: <span class="str">unless-stopped</span>
+<span class="ln">29</span>    <span class="key">ports</span>:
+<span class="ln">30</span>      - <span class="str">"11434:11434"</span>
+<span class="ln">31</span>    <span class="key">volumes</span>:
+<span class="ln">32</span>      - ollama_data:/root/.ollama
+<span class="ln">33</span>    <span class="key">deploy</span>:
+<span class="ln">34</span>      <span class="key">resources</span>:
+<span class="ln">35</span>        <span class="key">reservations</span>:
+<span class="ln">36</span>          <span class="key">devices</span>: [{<span class="key">driver</span>: nvidia, <span class="key">count</span>: all, <span class="key">capabilities</span>: [gpu]}]
+<span class="ln">37</span>    <span class="key">networks</span>: [smartstock-net]
+<span class="ln">38</span>
+<span class="ln">39</span>  <span class="anchor"># ── Spring Boot Backend ──────────────────</span>
+<span class="ln">40</span>  <span class="key">backend</span>:
+<span class="ln">41</span>    <span class="key">build</span>:
+<span class="ln">42</span>      <span class="key">context</span>: <span class="str">./backend-demo</span>
+<span class="ln">43</span>      <span class="key">dockerfile</span>: <span class="str">Dockerfile</span>
+<span class="ln">44</span>    <span class="key">container_name</span>: <span class="str">smartstock-backend</span>
+<span class="ln">45</span>    <span class="key">restart</span>: <span class="str">unless-stopped</span>
+<span class="ln">46</span>    <span class="key">ports</span>:
+<span class="ln">47</span>      - <span class="str">"8080:8080"</span>
+<span class="ln">48</span>    <span class="key">environment</span>:
+<span class="ln">49</span>      SPRING_DATASOURCE_URL: <span class="str">jdbc:postgresql://postgres:5432/dragonvision_db</span>
+<span class="ln">50</span>      SPRING_DATASOURCE_USERNAME: <span class="str">smartstock</span>
+<span class="ln">51</span>      SPRING_DATASOURCE_PASSWORD: <span class="str">${DB_PASSWORD}</span>
+<span class="ln">52</span>      AI_OLLAMA_BASE_URL: <span class="str">http://ollama:11434</span>
+<span class="ln">53</span>      AI_OLLAMA_MODEL: <span class="str">qwen2.5:7b</span>
+<span class="ln">54</span>    <span class="key">depends_on</span>:
+<span class="ln">55</span>      postgres: {<span class="key">condition</span>: service_healthy}
+<span class="ln">56</span>      ollama:   {<span class="key">condition</span>: service_started}
+<span class="ln">57</span>    <span class="key">networks</span>: [smartstock-net]
+<span class="ln">58</span>
+<span class="ln">59</span>  <span class="anchor"># ── Vue 3 Frontend (Nginx) ───────────────</span>
+<span class="ln">60</span>  <span class="key">frontend</span>:
+<span class="ln">61</span>    <span class="key">build</span>:
+<span class="ln">62</span>      <span class="key">context</span>: <span class="str">.</span>
+<span class="ln">63</span>      <span class="key">dockerfile</span>: <span class="str">Dockerfile.frontend</span>
+<span class="ln">64</span>    <span class="key">container_name</span>: <span class="str">smartstock-frontend</span>
+<span class="ln">65</span>    <span class="key">restart</span>: <span class="str">unless-stopped</span>
+<span class="ln">66</span>    <span class="key">ports</span>:
+<span class="ln">67</span>      - <span class="str">"80:80"</span>
+<span class="ln">68</span>    <span class="key">depends_on</span>: [backend]
+<span class="ln">69</span>    <span class="key">networks</span>: [smartstock-net]
+<span class="ln">70</span>
+<span class="ln">71</span><span class="key">volumes</span>:
+<span class="ln">72</span>  postgres_data:
+<span class="ln">73</span>  ollama_data:
+<span class="ln">74</span>
+<span class="ln">75</span><span class="key">networks</span>:
+<span class="ln">76</span>  smartstock-net:
+<span class="ln">77</span>    <span class="key">driver</span>: <span class="str">bridge</span>
+</pre></div>
+  </div>
+  <!-- Right: terminal -->
+  <div class="right-pane">
+    <div class="pane-header">🖥️ Terminal — Docker Compose Up &amp; Container Status</div>
+    <div class="terminal">
+<span class="prompt">PS D:\thuctap\demo&gt;</span> <span class="cmd">docker compose up -d --build</span><br>
+<span class="out">[+] Building 42.3s (18/18) FINISHED</span><br>
+<span class="out"> ✔ backend   Built in 38.1s</span><br>
+<span class="out"> ✔ frontend  Built in 12.6s</span><br>
+<br>
+<span class="pull">[+] Pulling images</span><br>
+<span class="pull"> ✔ postgres:15-alpine       Pulled  5.2s</span><br>
+<span class="pull"> ✔ ollama/ollama:latest     Pulled  38.7s</span><br>
+<br>
+<span class="ok">[+] Running 4/4</span><br>
+<span class="ok"> ✔ Container smartstock-postgres   Started   2.1s</span><br>
+<span class="ok"> ✔ Container smartstock-ollama     Started   3.4s</span><br>
+<span class="ok"> ✔ Container smartstock-backend    Started   8.2s</span><br>
+<span class="ok"> ✔ Container smartstock-frontend   Started  10.6s</span><br>
+<br>
+<span class="prompt">PS D:\thuctap\demo&gt;</span> <span class="cmd">docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"</span><br>
+<br>
+<table class="ps-table">
+  <tr>
+    <th>NAMES</th>
+    <th>IMAGE</th>
+    <th>STATUS</th>
+    <th>PORTS</th>
+  </tr>
+  <tr>
+    <td class="cont-name">smartstock-frontend</td>
+    <td class="cont-id">smartstock_frontend:latest</td>
+    <td class="cont-status">Up 2 minutes (healthy)</td>
+    <td class="cont-port">0.0.0.0:80→80/tcp</td>
+  </tr>
+  <tr>
+    <td class="cont-name">smartstock-backend</td>
+    <td class="cont-id">smartstock_backend:latest</td>
+    <td class="cont-status">Up 2 minutes (healthy)</td>
+    <td class="cont-port">0.0.0.0:8080→8080/tcp</td>
+  </tr>
+  <tr>
+    <td class="cont-name">smartstock-ollama</td>
+    <td class="cont-id">ollama/ollama:latest</td>
+    <td class="cont-status">Up 3 minutes</td>
+    <td class="cont-port">0.0.0.0:11434→11434/tcp</td>
+  </tr>
+  <tr>
+    <td class="cont-name">smartstock-postgres</td>
+    <td class="cont-id">postgres:15-alpine</td>
+    <td class="cont-status">Up 3 minutes (healthy)</td>
+    <td class="cont-port">0.0.0.0:5432→5432/tcp</td>
+  </tr>
+</table>
+<br>
+<span class="prompt">PS D:\thuctap\demo&gt;</span> <span class="cmd">docker compose logs backend --tail=20</span><br>
+<span class="out">smartstock-backend  | 2026-11-24 19:14:05.124  INFO --- [main] c.d.SmartStockApplication : Starting SmartStockApplication</span><br>
+<span class="out">smartstock-backend  | 2026-11-24 19:14:06.882  INFO --- [main] o.s.b.w.e.t.TomcatWebServer  : Tomcat started on port(s): 8080 (http)</span><br>
+<span class="ok">smartstock-backend  | 2026-11-24 19:14:07.011  INFO --- [main] c.d.SmartStockApplication : Started SmartStockApplication in 4.231 seconds</span><br>
+<span class="ok">smartstock-backend  | 2026-11-24 19:14:07.512  INFO --- [main] c.d.DataInitializer          : Seed data initialized successfully ✓</span><br>
+<span class="info">smartstock-backend  | 2026-11-24 19:14:08.001  INFO --- [http-nio] o.s.w.s.DispatcherServlet    : Completed initialization in 3 ms</span><br>
+<br>
+<span class="prompt">PS D:\thuctap\demo&gt;</span> <span class="cmd">docker compose exec ollama ollama list</span><br>
+<span class="out">NAME            ID            SIZE    MODIFIED</span><br>
+<span class="ok">qwen2.5:7b      9f39d4b53c    4.7 GB  2 days ago</span><br>
+<br>
+<span class="prompt">PS D:\thuctap\demo&gt;</span> <span class="cmd">curl http://localhost:8080/api/actuator/health</span><br>
+<span class="ok">{"status":"UP","components":{"db":{"status":"UP"},"diskSpace":{"status":"UP"}}}</span><br>
+<br>
+<span class="info">🚀 SmartStock AI fully deployed — http://localhost (frontend)</span><br>
+<span class="info">📡 API backend            — http://localhost:8080</span><br>
+<span class="info">🤖 Ollama AI              — http://localhost:11434</span><br>
+<span class="info">🐘 PostgreSQL             — localhost:5432 · dragonvision_db</span><br>
+    </div>
+  </div>
+</div>
+<div class="statusbar">
+  <span>🐳 Docker Desktop 4.28</span>
+  <span>4 containers running</span>
+  <span>smartstock-net</span>
+  <span style="margin-left:auto;">SmartStock AI — Dragon Vision Technology & AI Research</span>
+</div>
+</body>
+</html>
+

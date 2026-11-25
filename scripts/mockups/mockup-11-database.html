@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Database ERD – SmartStock AI</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Segoe UI',sans-serif;background:#1b2130;color:#e2e8f0;display:flex;flex-direction:column;height:100vh;width:1440px;overflow:hidden;}
+  /* Title bar */
+  .titlebar{background:#111827;height:34px;display:flex;align-items:center;padding:0 14px;gap:10px;border-bottom:1px solid #374151;}
+  .titlebar .dots span{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:4px;}
+  .dot-r{background:#ff5f57;}.dot-y{background:#febc2e;}.dot-g{background:#28c840;}
+  .menubar{background:#1f2937;height:30px;display:flex;align-items:center;padding:0 12px;gap:0;border-bottom:1px solid #374151;}
+  .menubar span{padding:0 12px;font-size:12.5px;color:#9ca3af;cursor:pointer;}
+  .menubar span:hover{background:#374151;color:#e5e7eb;}
+  /* Main layout */
+  .workspace{display:flex;flex:1;overflow:hidden;}
+  /* Left panel: table list */
+  .left-panel{width:220px;background:#111827;border-right:1px solid #374151;overflow:auto;}
+  .left-panel .section-title{padding:10px 12px 6px;font-size:11px;text-transform:uppercase;color:#6b7280;letter-spacing:1px;font-weight:600;}
+  .left-panel .table-item{padding:7px 12px;font-size:12.5px;cursor:pointer;display:flex;align-items:center;gap:8px;color:#d1d5db;border-left:3px solid transparent;}
+  .left-panel .table-item:hover{background:#1f2937;color:#fff;}
+  .left-panel .table-item.active{background:#1e3a5f;color:#60a5fa;border-left-color:#3b82f6;}
+  .left-panel .table-item .icon{font-size:14px;}
+  /* Center: ERD diagram */
+  .erd-panel{flex:1;overflow:auto;padding:24px;background:#1b2130;}
+  .erd-title{font-size:14px;font-weight:600;color:#93c5fd;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+  .erd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  /* Table card */
+  .table-card{background:#1f2937;border:1px solid #374151;border-radius:10px;overflow:hidden;font-size:11.5px;}
+  .table-card .card-header{background:#1e3a5f;padding:8px 12px;font-weight:700;color:#93c5fd;display:flex;align-items:center;gap:6px;font-size:12px;}
+  .table-card .card-header .pk-icon{background:#fbbf24;color:#111;border-radius:3px;padding:0 4px;font-size:10px;font-weight:800;}
+  .table-card .col-row{padding:5px 12px;border-top:1px solid #374151;display:flex;gap:8px;align-items:center;color:#d1d5db;}
+  .table-card .col-row .col-name{flex:1;font-family:'Consolas',monospace;}
+  .table-card .col-row .col-type{color:#6b7280;font-size:10.5px;font-family:'Consolas',monospace;}
+  .table-card .col-row .pk{color:#fbbf24;font-size:10px;font-weight:700;}
+  .table-card .col-row .fk{color:#34d399;font-size:10px;font-weight:700;}
+  .table-card .col-row .nn{color:#fb923c;font-size:10px;}
+  /* Right panel: SQL */
+  .right-panel{width:400px;background:#0f172a;border-left:1px solid #374151;overflow:auto;display:flex;flex-direction:column;}
+  .right-panel .rp-header{padding:10px 12px;font-size:12px;font-weight:600;color:#60a5fa;border-bottom:1px solid #374151;background:#1e293b;}
+  .sql-code{padding:12px;font-family:'Consolas','Courier New',monospace;font-size:11.5px;line-height:1.75;white-space:pre;overflow-x:auto;flex:1;}
+  .kw{color:#93c5fd;}.tp{color:#6ee7b7;}.cm{color:#4b5563;font-style:italic;}.val{color:#fca5a5;}.cn{color:#fbbf24;}
+  /* Status */
+  .statusbar{background:#1e3a5f;height:24px;display:flex;align-items:center;padding:0 12px;font-size:11.5px;color:#93c5fd;gap:16px;border-top:1px solid #374151;}
+  /* Arrows visual */
+  .arrow-row{display:flex;align-items:center;padding:4px 12px;font-size:11px;color:#6b7280;}
+  .arrow-row .fk-ref{color:#34d399;}
+</style>
+</head>
+<body>
+<div class="titlebar">
+  <div class="dots"><span class="dot-r"></span><span class="dot-y"></span><span class="dot-g"></span></div>
+  <span style="font-size:12.5px;color:#9ca3af;margin-left:8px;">🐘 DBeaver – SmartStock AI · PostgreSQL · dragonvision_db</span>
+</div>
+<div class="menubar">
+  <span>File</span><span>Edit</span><span>Navigate</span><span>Database</span><span>SQL Editor</span><span>Window</span><span>Help</span>
+</div>
+<div class="workspace">
+  <!-- Left: table list -->
+  <div class="left-panel">
+    <div class="section-title">📦 dragonvision_db</div>
+    <div class="table-item active"><span class="icon">📋</span> product_category</div>
+    <div class="table-item"><span class="icon">📋</span> product</div>
+    <div class="table-item"><span class="icon">📋</span> supplier</div>
+    <div class="table-item"><span class="icon">📋</span> stock_receipt</div>
+    <div class="table-item"><span class="icon">📋</span> stock_receipt_detail</div>
+    <div class="table-item"><span class="icon">📋</span> inventory_history</div>
+    <div class="section-title" style="margin-top:12px;">🔗 Relationships</div>
+    <div class="arrow-row">product <span class="fk-ref" style="margin:0 4px;">→</span> product_category</div>
+    <div class="arrow-row">stock_receipt <span class="fk-ref" style="margin:0 4px;">→</span> supplier</div>
+    <div class="arrow-row">stock_receipt_detail <span class="fk-ref" style="margin:0 4px;">→</span> stock_receipt</div>
+    <div class="arrow-row">stock_receipt_detail <span class="fk-ref" style="margin:0 4px;">→</span> product</div>
+    <div class="arrow-row">inventory_history <span class="fk-ref" style="margin:0 4px;">→</span> product</div>
+  </div>
+  <!-- Center: ERD -->
+  <div class="erd-panel">
+    <div class="erd-title">🗄️ Entity-Relationship Diagram — SmartStock AI Database Schema</div>
+    <div class="erd-grid">
+      <!-- product_category -->
+      <div class="table-card">
+        <div class="card-header"><span class="pk-icon">PK</span> product_category</div>
+        <div class="col-row"><span class="pk">PK</span><span class="col-name">id</span><span class="col-type">BIGSERIAL</span></div>
+        <div class="col-row"><span class="nn">NN</span><span class="col-name">code</span><span class="col-type">VARCHAR(20)</span></div>
+        <div class="col-row"><span class="nn">NN</span><span class="col-name">name</span><span class="col-type">VARCHAR(100)</span></div>
+        <div class="col-row"><span class="col-name">description</span><span class="col-type">TEXT</span></div>
+        <div class="col-row"><span class="col-name">created_at</span><span class="col-type">TIMESTAMP</span></div>
+      </div>
+      <!-- product -->
+      <div class="table-card">
+        <div class="card-header"><span class="pk-icon">PK</span> product</div>
+        <div class="col-row"><span class="pk">PK</span><span class="col-name">id</span><span class="col-type">BIGSERIAL</span></div>
+        <div class="col-row"><span class="nn">NN</span><span class="col-name">sku</span><span class="col-type">VARCHAR(50) UNIQUE</span></div>
+        <div class="col-row"><span class="nn">NN</span><span class="col-name">name</span><span class="col-type">VARCHAR(200)</span></div>
+        <div class="col-row"><span class="fk">FK</span><span class="col-name">category_id</span><span class="col-type">BIGINT → product_category</span></div>
+        <div class="col-row"><span class="col-name">unit</span><span class="col-type">VARCHAR(20)</span></div>
+        <div class="col-row"><span class="col-name">purchase_price</span><span class="col-type">NUMERIC(15,2)</span></div>
+        <div class="col-row"><span class="col-name">selling_price</span><span class="col-type">NUMERIC(15,2)</span></div>
+        <div class="col-row"><span class="col-name">stock_qty</span><span class="col-type">INTEGER DEFAULT 0</span></div>
+        <div class="col-row"><span class="col-name">min_stock</span><span class="col-type">INTEGER DEFAULT 5</span></div>
+        <div class="col-row"><span class="col-name">status</span><span class="col-type">VARCHAR(20)</span></div>
+      </div>
+      <!-- supplier -->
+      <div class="table-card">
+        <div class="card-header"><span class="pk-icon">PK</span> supplier</div>
+        <div class="col-row"><span class="pk">PK</span><span class="col-name">id</span><span class="col-type">BIGSERIAL</span></div>
+        <div class="col-row"><span class="nn">NN</span><span class="col-name">code</span><span class="col-type">VARCHAR(20)</span></div>
+        <div class="col-row"><span class="nn">NN</span><span class="col-name">name</span><span class="col-type">VARCHAR(150)</span></div>
+        <div class="col-row"><span class="col-name">contact_name</span><span class="col-type">VARCHAR(100)</span></div>
+        <div class="col-row"><span class="col-name">phone</span><span class="col-type">VARCHAR(20)</span></div>
+        <div class="col-row"><span class="col-name">email</span><span class="col-type">VARCHAR(100)</span></div>
+        <div class="col-row"><span class="col-name">address</span><span class="col-type">TEXT</span></div>
+      </div>
+      <!-- stock_receipt -->
+      <div class="table-card">
+        <div class="card-header"><span class="pk-icon">PK</span> stock_receipt</div>
+        <div class="col-row"><span class="pk">PK</span><span class="col-name">id</span><span class="col-type">BIGSERIAL</span></div>
+        <div class="col-row"><span class="nn">NN</span><span class="col-name">code</span><span class="col-type">VARCHAR(20) UNIQUE</span></div>
+        <div class="col-row"><span class="col-name">type</span><span class="col-type">VARCHAR(10) — IN/OUT</span></div>
+        <div class="col-row"><span class="fk">FK</span><span class="col-name">supplier_id</span><span class="col-type">BIGINT → supplier</span></div>
+        <div class="col-row"><span class="col-name">total_amount</span><span class="col-type">NUMERIC(15,2)</span></div>
+        <div class="col-row"><span class="col-name">note</span><span class="col-type">TEXT</span></div>
+        <div class="col-row"><span class="col-name">created_by</span><span class="col-type">VARCHAR(100)</span></div>
+        <div class="col-row"><span class="col-name">created_at</span><span class="col-type">TIMESTAMP</span></div>
+      </div>
+      <!-- stock_receipt_detail -->
+      <div class="table-card">
+        <div class="card-header"><span class="pk-icon">PK</span> stock_receipt_detail</div>
+        <div class="col-row"><span class="pk">PK</span><span class="col-name">id</span><span class="col-type">BIGSERIAL</span></div>
+        <div class="col-row"><span class="fk">FK</span><span class="col-name">receipt_id</span><span class="col-type">BIGINT → stock_receipt</span></div>
+        <div class="col-row"><span class="fk">FK</span><span class="col-name">product_id</span><span class="col-type">BIGINT → product</span></div>
+        <div class="col-row"><span class="nn">NN</span><span class="col-name">quantity</span><span class="col-type">INTEGER</span></div>
+        <div class="col-row"><span class="col-name">unit_price</span><span class="col-type">NUMERIC(15,2)</span></div>
+        <div class="col-row"><span class="col-name">subtotal</span><span class="col-type">NUMERIC(15,2)</span></div>
+      </div>
+      <!-- inventory_history -->
+      <div class="table-card">
+        <div class="card-header"><span class="pk-icon">PK</span> inventory_history</div>
+        <div class="col-row"><span class="pk">PK</span><span class="col-name">id</span><span class="col-type">BIGSERIAL</span></div>
+        <div class="col-row"><span class="fk">FK</span><span class="col-name">product_id</span><span class="col-type">BIGINT → product</span></div>
+        <div class="col-row"><span class="col-name">change_type</span><span class="col-type">VARCHAR(10) — IN/OUT</span></div>
+        <div class="col-row"><span class="col-name">qty_before</span><span class="col-type">INTEGER</span></div>
+        <div class="col-row"><span class="col-name">qty_change</span><span class="col-type">INTEGER</span></div>
+        <div class="col-row"><span class="col-name">qty_after</span><span class="col-type">INTEGER</span></div>
+        <div class="col-row"><span class="col-name">reference_code</span><span class="col-type">VARCHAR(50)</span></div>
+        <div class="col-row"><span class="col-name">changed_by</span><span class="col-type">VARCHAR(100)</span></div>
+        <div class="col-row"><span class="col-name">changed_at</span><span class="col-type">TIMESTAMP</span></div>
+      </div>
+    </div>
+  </div>
+  <!-- Right: SQL -->
+  <div class="right-panel">
+    <div class="rp-header">📄 schema.sql — PostgreSQL DDL</div>
+    <div class="sql-code"><span class="cm">-- SmartStock AI Database Schema
+-- Dragon Vision Technology & AI Research
+-- PostgreSQL 15+</span>
+
+<span class="kw">CREATE TABLE</span> <span class="cn">product_category</span> (
+  id          <span class="tp">BIGSERIAL</span> <span class="kw">PRIMARY KEY</span>,
+  code        <span class="tp">VARCHAR</span>(20)  <span class="kw">NOT NULL UNIQUE</span>,
+  name        <span class="tp">VARCHAR</span>(100) <span class="kw">NOT NULL</span>,
+  description <span class="tp">TEXT</span>,
+  created_at  <span class="tp">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="val">NOW</span>()
+);
+
+<span class="kw">CREATE TABLE</span> <span class="cn">supplier</span> (
+  id           <span class="tp">BIGSERIAL</span> <span class="kw">PRIMARY KEY</span>,
+  code         <span class="tp">VARCHAR</span>(20)  <span class="kw">NOT NULL UNIQUE</span>,
+  name         <span class="tp">VARCHAR</span>(150) <span class="kw">NOT NULL</span>,
+  contact_name <span class="tp">VARCHAR</span>(100),
+  phone        <span class="tp">VARCHAR</span>(20),
+  email        <span class="tp">VARCHAR</span>(100),
+  address      <span class="tp">TEXT</span>
+);
+
+<span class="kw">CREATE TABLE</span> <span class="cn">product</span> (
+  id             <span class="tp">BIGSERIAL</span> <span class="kw">PRIMARY KEY</span>,
+  sku            <span class="tp">VARCHAR</span>(50)   <span class="kw">NOT NULL UNIQUE</span>,
+  name           <span class="tp">VARCHAR</span>(200)  <span class="kw">NOT NULL</span>,
+  category_id    <span class="tp">BIGINT</span> <span class="kw">REFERENCES</span> <span class="cn">product_category</span>(id),
+  unit           <span class="tp">VARCHAR</span>(20),
+  purchase_price <span class="tp">NUMERIC</span>(15,2),
+  selling_price  <span class="tp">NUMERIC</span>(15,2),
+  stock_qty      <span class="tp">INTEGER</span> <span class="kw">DEFAULT</span> <span class="val">0</span>,
+  min_stock      <span class="tp">INTEGER</span> <span class="kw">DEFAULT</span> <span class="val">5</span>,
+  status         <span class="tp">VARCHAR</span>(20)   <span class="kw">DEFAULT</span> <span class="val">'ACTIVE'</span>
+);
+
+<span class="kw">CREATE TABLE</span> <span class="cn">stock_receipt</span> (
+  id           <span class="tp">BIGSERIAL</span> <span class="kw">PRIMARY KEY</span>,
+  code         <span class="tp">VARCHAR</span>(20) <span class="kw">NOT NULL UNIQUE</span>,
+  type         <span class="tp">VARCHAR</span>(10) <span class="kw">NOT NULL</span>, <span class="cm">-- IN / OUT</span>
+  supplier_id  <span class="tp">BIGINT</span> <span class="kw">REFERENCES</span> <span class="cn">supplier</span>(id),
+  total_amount <span class="tp">NUMERIC</span>(15,2),
+  note         <span class="tp">TEXT</span>,
+  created_by   <span class="tp">VARCHAR</span>(100),
+  created_at   <span class="tp">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="val">NOW</span>()
+);
+
+<span class="kw">CREATE TABLE</span> <span class="cn">stock_receipt_detail</span> (
+  id         <span class="tp">BIGSERIAL</span> <span class="kw">PRIMARY KEY</span>,
+  receipt_id <span class="tp">BIGINT</span> <span class="kw">NOT NULL REFERENCES</span> <span class="cn">stock_receipt</span>(id),
+  product_id <span class="tp">BIGINT</span> <span class="kw">NOT NULL REFERENCES</span> <span class="cn">product</span>(id),
+  quantity   <span class="tp">INTEGER</span>       <span class="kw">NOT NULL</span>,
+  unit_price <span class="tp">NUMERIC</span>(15,2),
+  subtotal   <span class="tp">NUMERIC</span>(15,2)
+);
+
+<span class="kw">CREATE TABLE</span> <span class="cn">inventory_history</span> (
+  id             <span class="tp">BIGSERIAL</span> <span class="kw">PRIMARY KEY</span>,
+  product_id     <span class="tp">BIGINT</span> <span class="kw">REFERENCES</span> <span class="cn">product</span>(id),
+  change_type    <span class="tp">VARCHAR</span>(10), <span class="cm">-- IN / OUT</span>
+  qty_before     <span class="tp">INTEGER</span>,
+  qty_change     <span class="tp">INTEGER</span>,
+  qty_after      <span class="tp">INTEGER</span>,
+  reference_code <span class="tp">VARCHAR</span>(50),
+  changed_by     <span class="tp">VARCHAR</span>(100),
+  changed_at     <span class="tp">TIMESTAMP</span> <span class="kw">DEFAULT</span> <span class="val">NOW</span>()
+);
+    </div>
+  </div>
+</div>
+<div class="statusbar">
+  <span>🐘 PostgreSQL 15</span>
+  <span>dragonvision_db</span>
+  <span>6 tables · 5 FK constraints</span>
+  <span style="margin-left:auto;">SmartStock AI — Dragon Vision Technology</span>
+</div>
+</body>
+</html>
+

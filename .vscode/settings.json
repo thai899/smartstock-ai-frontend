@@ -1,0 +1,9 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.import.maven.enabled": true,
+  "maven.projects": [
+    "backend-demo/pom.xml"
+  ],
+  "java.compile.nullAnalysis.mode": "automatic"
+}
+

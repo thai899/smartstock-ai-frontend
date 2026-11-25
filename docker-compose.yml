@@ -1,0 +1,110 @@
+version: '3.9'
+
+# ============================================================
+# Dragon Vision AI — SmartStock: Docker Compose
+# Khởi động: docker compose up -d
+# ============================================================
+
+services:
+
+  # ── PostgreSQL 16 — Database chính ─────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: smartstock_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       smartstock_ai
+      POSTGRES_USER:     dragonvision
+      POSTGRES_PASSWORD: Dv@SmartStock2025!
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend-demo/database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dragonvision -d smartstock_ai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartstock_net
+
+  # ── Ollama — Local LLM server (Qwen2.5 7B) ─────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: smartstock_ai_llm
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    environment:
+      OLLAMA_KEEP_ALIVE: "24h"
+      OLLAMA_NUM_PARALLEL: "2"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - smartstock_net
+
+  # ── Spring Boot Backend — REST API + JWT ───────────────────
+  backend:
+    image: dragonvision/smartstock-backend:2.5.0
+    build:
+      context: ./backend-demo
+      dockerfile: Dockerfile
+    container_name: smartstock_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    environment:
+      SPRING_DATASOURCE_URL:      jdbc:postgresql://postgres:5432/smartstock_ai
+      SPRING_DATASOURCE_USERNAME: dragonvision
+      SPRING_DATASOURCE_PASSWORD: Dv@SmartStock2025!
+      DRAGONVISION_AI_API_URL:    http://ollama:11434/v1/chat/completions
+      DRAGONVISION_AI_MODEL:      qwen2.5:7b
+      JWT_SECRET:                 ${JWT_SECRET}
+      SPRING_PROFILES_ACTIVE:     docker
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - smartstock_net
+
+  # ── Vue 3 Frontend — Nginx production build ────────────────
+  frontend:
+    image: dragonvision/smartstock-frontend:2.5.0
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: smartstock_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    environment:
+      VITE_API_URL: http://backend:8080
+    networks:
+      - smartstock_net
+
+volumes:
+  postgres_data:   { driver: local }
+  ollama_models:   { driver: local }
+
+networks:
+  smartstock_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
